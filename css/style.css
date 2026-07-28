@@ -158,6 +158,26 @@ input[type="text"], select, input[type="file"] {
 }
 .unmatched-box.hidden { display: none; }
 .unmatched-box ul { margin: 6px 0; padding-left: 20px; }
+.unmatched-box ul li a { color: #7a4a00; font-weight: 600; cursor: pointer; }
+
+.summary-box {
+  margin-top: 14px;
+  background: #eafaf4;
+  border: 1px solid #b7ece0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.92rem;
+}
+.summary-box.hidden { display: none; }
+.summary-box ul { margin: 6px 0; padding-left: 20px; }
+
+.ds-item.flash {
+  animation: flash-highlight 1.6s ease;
+}
+@keyframes flash-highlight {
+  0% { background: #ffe9b8; }
+  100% { background: transparent; }
+}
 
 footer {
   text-align: center;

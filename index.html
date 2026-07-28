@@ -22,10 +22,19 @@
     <input type="file" id="quote-file" accept="application/pdf" />
     <button id="parse-quote-btn" class="btn secondary" disabled>Scan quote</button>
     <div id="quote-status" class="status"></div>
+
+    <div id="quote-summary" class="summary-box hidden"></div>
+
+    <div id="quote-missing" class="unmatched-box hidden">
+      <strong>Recognised in the quote, but no datasheet is loaded for them yet:</strong>
+      <ul id="quote-missing-list"></ul>
+      <p class="hint">Click an item to jump to it in Step 3 and upload its PDF there - it'll be picked up automatically and remembered for next time.</p>
+    </div>
+
     <div id="quote-unmatched" class="unmatched-box hidden">
-      <strong>Codes we spotted but don't have a datasheet for yet:</strong>
+      <strong>Other codes we spotted but don't recognise at all:</strong>
       <ul id="quote-unmatched-list"></ul>
-      <p class="hint">Use "Add a datasheet" in Step 3 to upload the missing ones - they'll be remembered for next time.</p>
+      <p class="hint">If any of these are products you supplied, use "+ Add a new datasheet to the library" in Step 3 to add them.</p>
     </div>
   </section>
 

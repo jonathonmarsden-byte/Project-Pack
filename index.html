@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Post Project Pack Builder</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <h1>Post Project Pack Builder</h1>
+  <p class="tagline">Fill in the project details, pick your datasheets (or upload a quote to auto-select them), and generate a ready-to-send Post Project Information Pack PDF.</p>
+</header>
+
+<main>
+
+  <!-- ============================================================ -->
+  <section class="card" id="quote-section">
+    <h2>Step 1 &middot; Upload a quote or doorset schedule <span class="optional">(optional, speeds everything up)</span></h2>
+    <p class="hint">Upload the quotation/schedule PDF for this project. We'll try to fill in the client/project details
+      below and automatically tick the datasheets that were quoted. You can always fix anything afterwards.</p>
+    <input type="file" id="quote-file" accept="application/pdf" />
+    <button id="parse-quote-btn" class="btn secondary" disabled>Scan quote</button>
+    <div id="quote-status" class="status"></div>
+    <div id="quote-unmatched" class="unmatched-box hidden">
+      <strong>Codes we spotted but don't have a datasheet for yet:</strong>
+      <ul id="quote-unmatched-list"></ul>
+      <p class="hint">Use "Add a datasheet" in Step 3 to upload the missing ones - they'll be remembered for next time.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="details-section">
+    <h2>Step 2 &middot; Project details</h2>
+
+    <div class="grid2">
+      <label>Client
+        <input type="text" id="f-client" placeholder="e.g. Essex Partnership University Trust" />
+      </label>
+      <label>Project name
+        <input type="text" id="f-project" placeholder="e.g. Derwent Centre Urgent Care" />
+      </label>
+      <label>Customer / Contractor
+        <input type="text" id="f-customer" placeholder="e.g. Storm Building Limited" />
+      </label>
+      <label>Doorset schedule reference
+        <input type="text" id="f-scheduleRef" placeholder="e.g. 31020" />
+      </label>
+      <label>Project completion date
+        <input type="text" id="f-completionDate" placeholder="e.g. April 2026" />
+      </label>
+      <label>Frame specification
+        <input type="text" id="f-frameSpecification" value="Hardwood Frame" />
+      </label>
+      <label>Fire rating
+        <input type="text" id="f-fireRating" value="FD30S" />
+      </label>
+      <label>Ironmongery specification
+        <input type="text" id="f-ironmongerySpecification" value="Kingsway Ironmongery" />
+      </label>
+      <label>Guarantee valid from
+        <input type="text" id="f-guaranteeFrom" placeholder="e.g. March 2026" />
+      </label>
+      <label>Guarantee valid to
+        <input type="text" id="f-guaranteeTo" placeholder="e.g. March 2027" />
+      </label>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="f-includeFireCert" checked />
+      Include a Certificate of Fire Resistance page
+    </label>
+    <div class="grid2" id="firecert-fields">
+      <label>Area
+        <input type="text" id="f-fireCertArea" />
+      </label>
+      <label>Ward(s)
+        <input type="text" id="f-fireCertWards" />
+      </label>
+      <label class="span2">Door number(s)
+        <input type="text" id="f-fireCertDoorNumbers" placeholder="e.g. D-01, D-02, D-03" />
+      </label>
+    </div>
+
+    <details class="company-details">
+      <summary>Company / letterhead details (defaults to Kingsway Group - edit if needed)</summary>
+      <div class="grid2">
+        <label>Company name
+          <input type="text" id="f-companyName" value="Kingsway Group" />
+        </label>
+        <label>Phone
+          <input type="text" id="f-companyPhone" value="+44 (0)1322 610 470" />
+        </label>
+        <label class="span2">Address
+          <input type="text" id="f-companyAddress" value="Unit 2, Teardrop Centre, London Road, Swanley, Kent, BR8 8TS" />
+        </label>
+        <label>Email
+          <input type="text" id="f-companyEmail" value="customer.service@kingswaygroup.co.uk" />
+        </label>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="datasheet-section">
+    <h2>Step 3 &middot; Choose datasheets</h2>
+    <p class="hint">Tick everything supplied on this project. Items marked <span class="badge">needs file</span> don't have a bundled datasheet yet - upload one and it'll be remembered.</p>
+    <div id="datasheet-groups"></div>
+
+    <details class="add-datasheet">
+      <summary>+ Add a new datasheet to the library</summary>
+      <div class="grid2">
+        <label>Label
+          <input type="text" id="new-ds-label" placeholder="e.g. KG240 Electric Strike Release" />
+        </label>
+        <label>Category
+          <select id="new-ds-category">
+            <option>Door System</option>
+            <option>Vision Panel</option>
+            <option>Ligature Monitoring</option>
+            <option>Access Control & Locking</option>
+            <option selected>Additional Datasheets</option>
+          </select>
+        </label>
+        <label class="span2">Keywords for quote auto-detection <span class="optional">(comma separated, optional)</span>
+          <input type="text" id="new-ds-keywords" placeholder="e.g. KG240, Electric Strike Release" />
+        </label>
+        <label class="span2">PDF file
+          <input type="file" id="new-ds-file" accept="application/pdf" />
+        </label>
+      </div>
+      <button id="add-ds-btn" class="btn secondary">Add to library</button>
+    </details>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="card" id="generate-section">
+    <h2>Step 4 &middot; Generate</h2>
+    <p class="hint" id="selection-summary">No datasheets selected yet.</p>
+    <button id="generate-btn" class="btn primary">Generate Post Project Pack PDF</button>
+    <div id="generate-status" class="status"></div>
+  </section>
+
+</main>
+
+<footer>
+  Runs entirely in your browser - nothing is uploaded to a server. Datasheets you add are stored locally in this browser
+  (IndexedDB) so they're ready next time you open the app on this device.
+</footer>
+
+<!-- Third-party libraries (pdf.js for reading, pdf-lib for writing) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+
+<script src="js/library.js"></script>
+<script src="js/db.js"></script>
+<script src="js/quoteparse.js"></script>
+<script src="js/pdfgen.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

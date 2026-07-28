@@ -200,9 +200,16 @@ quoteFileInput.addEventListener("change", () => {
 
 parseQuoteBtn.addEventListener("click", async () => {
   const statusEl = document.getElementById("quote-status");
+  const summaryBox = document.getElementById("quote-summary");
+  const missingBox = document.getElementById("quote-missing");
+  const missingList = document.getElementById("quote-missing-list");
   const unmatchedBox = document.getElementById("quote-unmatched");
   const unmatchedList = document.getElementById("quote-unmatched-list");
+
+  summaryBox.classList.add("hidden");
+  missingBox.classList.add("hidden");
   unmatchedBox.classList.add("hidden");
+  missingList.innerHTML = "";
   unmatchedList.innerHTML = "";
   statusEl.className = "status";
   statusEl.textContent = "Reading quote...";
@@ -213,9 +220,9 @@ parseQuoteBtn.addEventListener("click", async () => {
     const text = await extractPdfText(buf);
     lastQuoteText = text;
 
-    // 1. Guess project fields, only filling blanks
+    // ---- Step A: fill in every project field we can find (never stops early) ----
     const fields = guessFields(text);
-    const map = {
+    const fieldMap = {
       client: "f-client",
       project: "f-project",
       customer: "f-customer",
@@ -225,7 +232,7 @@ parseQuoteBtn.addEventListener("click", async () => {
       completionDate: "f-completionDate"
     };
     let filledCount = 0;
-    for (const [field, elId] of Object.entries(map)) {
+    for (const [field, elId] of Object.entries(fieldMap)) {
       if (fields[field]) {
         const el = document.getElementById(elId);
         if (el && !el.value.trim()) {
@@ -235,40 +242,88 @@ parseQuoteBtn.addEventListener("click", async () => {
       }
     }
 
-    // 2. Match library items
+    // ---- Step B: work out every datasheet the quote references ----
     mergedLibrary = await getMergedLibrary();
-    const { matchedIds, hitLog } = matchLibraryItems(text, mergedLibrary);
-    let matchedCount = 0;
+    const { matchedIds } = matchLibraryItems(text, mergedLibrary);
+
+    const tickedItems = [];       // library items we found AND could tick
+    const missingFileItems = [];  // library items we recognised but have no PDF for
+
     for (const id of matchedIds) {
+      const item = mergedLibrary.find((i) => i.id === id);
+      if (!item) continue;
       const cb = document.querySelector(`.ds-checkbox[data-id="${id}"]`);
-      if (cb && !cb.disabled) {
+      if (item.needsUpload || !cb || cb.disabled) {
+        missingFileItems.push(item);
+      } else {
         cb.checked = true;
-        matchedCount++;
+        tickedItems.push(item);
       }
     }
     updateSelectionSummary();
 
-    // 3. Flag unrecognised codes
-    const unknown = findUnrecognisedCodes(text, mergedLibrary);
-    if (unknown.length) {
+    // ---- Step C: anything left in the text that matched no library item at all ----
+    const unknownCodes = findUnrecognisedCodes(text, mergedLibrary);
+
+    // ---- Step D: always show a full "here's everything" summary, then the gaps ----
+    summaryBox.classList.remove("hidden");
+    summaryBox.innerHTML =
+      `<strong>Scanned the quote and applied everything it could match:</strong>` +
+      `<ul>` +
+      `<li>${filledCount} project detail field(s) filled in</li>` +
+      `<li>${tickedItems.length} datasheet(s) auto-ticked` +
+      (tickedItems.length ? `: ${tickedItems.map((i) => i.label).join(", ")}` : "") +
+      `</li>` +
+      `</ul>`;
+
+    if (missingFileItems.length) {
+      missingBox.classList.remove("hidden");
+      for (const item of missingFileItems) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.textContent = item.label;
+        a.href = "#ds-" + item.id;
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          jumpToDatasheetItem(item.id);
+        });
+        li.appendChild(a);
+        missingList.appendChild(li);
+      }
+    }
+
+    if (unknownCodes.length) {
       unmatchedBox.classList.remove("hidden");
-      for (const u of unknown) {
+      for (const u of unknownCodes) {
         const li = document.createElement("li");
         li.textContent = `${u.code} (seen ${u.count}x)`;
         unmatchedList.appendChild(li);
       }
     }
 
+    const gapCount = missingFileItems.length + unknownCodes.length;
     statusEl.className = "status ok";
-    statusEl.textContent =
-      `Done. Filled ${filledCount} field(s) and ticked ${matchedCount} datasheet(s) automatically. ` +
-      `Please double check everything below before generating.`;
+    statusEl.textContent = gapCount
+      ? `Done. ${gapCount} item(s) still need attention - see below.`
+      : `Done. Everything the quote referenced has a datasheet ready to go.`;
   } catch (err) {
     console.error(err);
     statusEl.className = "status error";
     statusEl.textContent = "Could not read that PDF: " + err.message;
   }
 });
+
+/** Scrolls the datasheet list to a given item and briefly highlights its row. */
+function jumpToDatasheetItem(itemId) {
+  const cb = document.querySelector(`.ds-checkbox[data-id="${itemId}"]`);
+  if (!cb) return;
+  const row = cb.closest(".ds-item");
+  row.scrollIntoView({ behavior: "smooth", block: "center" });
+  row.classList.remove("flash");
+  // restart the animation even if it was already flashed once
+  void row.offsetWidth;
+  row.classList.add("flash");
+}
 
 // ---------------------------------------------------------------------
 // Fire certificate section toggle

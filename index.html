@@ -113,7 +113,9 @@
   <!-- ============================================================ -->
   <section class="card" id="datasheet-section">
     <h2>Step 3 &middot; Choose datasheets</h2>
-    <p class="hint">Tick everything supplied on this project. Items marked <span class="badge">needs file</span> don't have a bundled datasheet yet - upload one and it'll be remembered.</p>
+    <p class="hint">Tick everything supplied on this project. Items marked <span class="badge">needs file</span> don't have a bundled datasheet yet - upload one and it'll be remembered.
+      Scanning a quote (Step 1) replaces this selection with exactly what that quote matched, so the pack only ever contains what was actually quoted - use <em>Clear all</em> below to start from scratch by hand instead.</p>
+    <button id="clear-selection-btn" class="btn secondary" type="button">Clear all selections</button>
     <div id="datasheet-groups"></div>
 
     <details class="add-datasheet">
@@ -127,7 +129,10 @@
             <option>Door System</option>
             <option>Vision Panel</option>
             <option>Ligature Monitoring</option>
-            <option>Access Control & Locking</option>
+            <option>Locking & Access Control</option>
+            <option>Door Closers & Hinges</option>
+            <option>Handles, Pulls & Stops</option>
+            <option>Other Hardware</option>
             <option selected>Additional Datasheets</option>
           </select>
         </label>
@@ -145,7 +150,7 @@
   <!-- ============================================================ -->
   <section class="card" id="generate-section">
     <h2>Step 4 &middot; Generate</h2>
-    <p class="hint" id="selection-summary">No datasheets selected yet.</p>
+    <div class="hint" id="selection-summary">No datasheets selected yet.</div>
     <button id="generate-btn" class="btn primary">Generate Post Project Pack PDF</button>
     <div id="generate-status" class="status"></div>
   </section>

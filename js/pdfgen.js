@@ -21,13 +21,13 @@ const PAGE_W = 595.28; // A4
 const PAGE_H = 841.89;
 
 async function fetchAssetBytes(relPath) {
-  const res = await fetch(`assets/datasheets/${relPath}`);
+  const res = await fetch(`assets/datasheets/${encodeURIComponent(relPath)}`);
   if (!res.ok) throw new Error(`Could not load asset: ${relPath}`);
   return await res.arrayBuffer();
 }
 
 async function fetchBoilerplateBytes(relPath) {
-  const res = await fetch(`assets/boilerplate/${relPath}`);
+  const res = await fetch(`assets/boilerplate/${encodeURIComponent(relPath)}`);
   if (!res.ok) throw new Error(`Could not load boilerplate asset: ${relPath}`);
   return await res.arrayBuffer();
 }

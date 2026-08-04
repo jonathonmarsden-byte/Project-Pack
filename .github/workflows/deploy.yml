@@ -1,0 +1,56 @@
+name: Build and deploy to GitHub Pages
+
+# Runs automatically every time you push to main (e.g. after uploading a
+# new datasheet PDF through the GitHub web UI) and rebuilds
+# assets/datasheets/manifest.json so the app always knows exactly which
+# PDF files actually exist in the repo - whatever they're named.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate assets/datasheets/manifest.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+
+          folder = "assets/datasheets"
+          files = sorted(
+              f for f in os.listdir(folder)
+              if f.lower().endswith(".pdf")
+          )
+          with open(os.path.join(folder, "manifest.json"), "w") as fh:
+              json.dump(files, fh, indent=2)
+          print(f"manifest.json written with {len(files)} file(s):")
+          for f in files:
+              print(" -", f)
+          PY
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
